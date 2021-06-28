@@ -5,8 +5,7 @@ This plugin enables snapshot testing in playwright like snapshotting screenshots
 ## Installation 
 
 ```bash
-$ pip install pytest-playwright-snapshot
-
+$ pip install git+https://github.com/kumaraditya303/pytest-playwright-snapshot
 ```
 
 ## Usage
