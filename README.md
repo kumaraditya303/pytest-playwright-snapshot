@@ -5,7 +5,7 @@ This plugin enables snapshot testing in playwright like snapshotting screenshots
 ## Installation
 
 ```bash
-$ pip install git+https://github.com/kumaraditya303/pytest-playwright-snapshot
+$ pip install pytest-playwright-snapshot
 ```
 
 ## Usage
@@ -35,6 +35,8 @@ $ pytest --update-snapshots
 ```
 
 This will create snapshots for your tests, after that you can run the tests are usual and this will compare the snapshots.
+
+There is `threshold` kwarg only option which can be used to set the threshold for the comparison of the screenshots and by default it is `0.1`
 
 ## License
 
