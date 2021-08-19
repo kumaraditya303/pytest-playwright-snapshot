@@ -2,7 +2,7 @@
 
 This plugin enables snapshot testing in playwright like snapshotting screenshots of pages, element handles etc.
 
-## Installation 
+## Installation
 
 ```bash
 $ pip install git+https://github.com/kumaraditya303/pytest-playwright-snapshot
@@ -20,13 +20,13 @@ def test_myapp(page, assert_snapshot):
     assert_snapshot(page.screenshot(), "example.png")
 ```
 
-Ths first time you run pytest, you will get error like 
+Ths first time you run pytest, you will get error like
 
 ```console
 Failed: Snapshot not found, use --update-snapshots to create it.
 ```
 
-As first you need to create golden snapshots to which this plugin will compare in future. 
+As first you need to create golden snapshots to which this plugin will compare in future.
 
 To create snapshots run:
 
@@ -36,6 +36,6 @@ $ pytest --update-snapshots
 
 This will create snapshots for your tests, after that you can run the tests are usual and this will compare the snapshots.
 
-## License 
+## License
 
-Apache 2.0 LICENSE 
+Apache 2.0 LICENSE
