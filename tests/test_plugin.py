@@ -1,68 +1,60 @@
 import sys
+import os
+from io import BytesIO
 from pathlib import Path
-
+from typing import Any, Callable
 import pytest
-import requests
+from PIL import Image
+from pixelmatch.contrib.PIL import pixelmatch
 
 
-@pytest.mark.parametrize(
-    "browser_name",
-    ["chromium", "firefox", "webkit"],
-)
-def test_snapshot_create(browser_name: str, testdir: pytest.Testdir) -> None:
-    testdir.makepyfile(
-        """
-        def test_snapshot(page, assert_snapshot):
-            page.goto("https://example.com")
-            assert_snapshot(page.screenshot(), "test-snapshot.png")
-    """
+@pytest.fixture
+def assert_snapshot(pytestconfig: Any, request: Any, browser_name: str) -> Callable:
+    test_name = f"{str(request.node.name)}[{str(sys.platform)}]"
+
+    def compare(img: bytes, *, threshold: float = 0.1, name=f'{test_name}.png') -> None:
+        update_snapshot = pytestconfig.getoption("--update-snapshots")
+        test_file_name = str(os.path.basename(request.node.fspath)).strip('.py')
+        filepath = (
+            Path(request.node.fspath).parent.resolve()
+            / 'snapshots'
+            / test_file_name
+        )
+        filepath.mkdir(parents=True, exist_ok=True)
+        file = filepath / name
+        if update_snapshot:
+            file.write_bytes(img)
+            return
+        if not file.exists():
+            pytest.fail("Snapshot not found, use --update-snapshots to update it.")
+        img_a = Image.open(BytesIO(img))
+        img_b = Image.open(file)
+        img_diff = Image.new("RGBA", img_a.size)
+
+        mismatch = pixelmatch(img_a, img_b, img_diff, includeAA=True, threshold=threshold)
+
+        if mismatch == 0:
+            "Snapshots match!"
+        else:
+            results_dir_name = "snapshots_tests_failures"
+            test_results_dir = (
+                 Path(request.node.fspath).parent.resolve()
+                / f'{results_dir_name}/{test_file_name}/{test_name}'
+            )
+            test_results_dir.mkdir(parents=True, exist_ok=True)
+            img_diff.save(f'{test_results_dir}/Diff_{name}')
+            img_a.save(f'{test_results_dir}/Actual_{name}')
+            img_b.save(f'{test_results_dir}/Expected_{name}')
+            pytest.fail("Snapshots DO NOT match...")
+
+    return compare
+
+
+def pytest_addoption(parser: Any) -> None:
+    group = parser.getgroup("playwright-snapshot", "Playwright Snapshot")
+    group.addoption(
+        "--update-snapshots",
+        action="store_true",
+        default=False,
+        help="Update snapshots.",
     )
-    filepath = (
-        Path(testdir.tmpdir)
-        / "__snapshots__"
-        / browser_name
-        / sys.platform
-        / "test-snapshot.png"
-    ).resolve()
-
-    result = testdir.runpytest("--browser", browser_name)
-    result.assert_outcomes(failed=1)
-    assert "Snapshot not found, use --update-snapshots to update it." in "".join(
-        result.outlines
-    )
-    assert not filepath.exists()
-
-    result = testdir.runpytest("--browser", browser_name, "--update-snapshots")
-    result.assert_outcomes(passed=1)
-    assert filepath.exists()
-
-
-@pytest.mark.parametrize(
-    "browser_name",
-    ["chromium", "firefox", "webkit"],
-)
-def test_snapshot_fail(browser_name: str, testdir: pytest.Testdir) -> None:
-    testdir.makepyfile(
-        """
-        def test_snapshot(page, assert_snapshot):
-            page.goto("https://via.placeholder.com/250/000000")
-            element = page.query_selector('img')
-            assert_snapshot(element.screenshot(), "test-snapshot.png")
-    """
-    )
-    filepath = (
-        Path(testdir.tmpdir)
-        / "__snapshots__"
-        / browser_name
-        / sys.platform
-        / "test-snapshot.png"
-    ).resolve()
-
-    result = testdir.runpytest("--browser", browser_name, "--update-snapshots")
-    result.assert_outcomes(passed=1)
-    assert filepath.exists()
-    img = requests.get("https://via.placeholder.com/250/FFFFFF").content
-    filepath.write_bytes(img)
-    result = testdir.runpytest("--browser", browser_name)
-    result.assert_outcomes(failed=1)
-    assert "Snapshots does not match" in "".join(result.outlines)
