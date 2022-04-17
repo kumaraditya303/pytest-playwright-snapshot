@@ -1,5 +1,6 @@
 import sys
 import os
+import shutil
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Callable
@@ -22,6 +23,17 @@ def assert_snapshot(pytestconfig: Any, request: Any, browser_name: str) -> Calla
         )
         filepath.mkdir(parents=True, exist_ok=True)
         file = filepath / name
+
+        results_dir_name = (Path(request.node.fspath).parent.resolve()
+                / "snapshots_tests_failures"
+        )
+        test_results_dir = (
+                results_dir_name
+                /test_file_name/test_name
+        )
+
+        if test_results_dir.exists():
+            shutil.rmtree(test_results_dir)
         if update_snapshot:
             file.write_bytes(img)
             return
@@ -37,11 +49,7 @@ def assert_snapshot(pytestconfig: Any, request: Any, browser_name: str) -> Calla
         if mismatch == 0:
             "Snapshots match!"
         else:
-            results_dir_name = "snapshots_tests_failures"
-            test_results_dir = (
-                 Path(request.node.fspath).parent.resolve()
-                / f'{results_dir_name}/{test_file_name}/{test_name}'
-            )
+
             test_results_dir.mkdir(parents=True, exist_ok=True)
             img_diff.save(f'{test_results_dir}/Diff_{name}')
             img_a.save(f'{test_results_dir}/Actual_{name}')
