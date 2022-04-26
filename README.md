@@ -52,11 +52,12 @@ In case of a mismatch, `snapshot_tests_failures` folder will be created with `Ac
 
 ## Folder Structure Example
 
-![img.png](img.png)
+![img_2.png](img_2.png)
 
 ## Threshold
-There is `threshold`  option which can be used to set the threshold for the comparison of the screenshots. 
-`0` to `1`, default it is `0.1`
+There is `threshold`  option which can be used to set the threshold for the comparison of the screenshots:
+`0` to `1`.
+Default is `0.1`
 
 ## License
 
