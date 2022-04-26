@@ -1,9 +1,7 @@
 name: Publish Python 🐍 distributions 📦 to PyPI and TestPyPI
 
 on:
-  push:
-    branches:
-      - main
+  push
 
 jobs:
   build-n-publish:
@@ -29,7 +27,7 @@ jobs:
           --wheel
           --outdir dist/
       - name: Publish distribution 📦 to Test PyPI
-        uses: pypa/gh-action-pypi-publish@master
+        uses: pypa/gh-action-pypi-publish@release/v1
         with:
           user: __token__
           password: ${{ secrets.TEST_PYPI_API_TOKEN }}
