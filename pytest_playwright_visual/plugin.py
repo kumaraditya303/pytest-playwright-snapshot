@@ -43,7 +43,7 @@ def assert_snapshot(pytestconfig: Any, request: Any, browser_name: str) -> Calla
         img_a = Image.open(BytesIO(img))
         img_b = Image.open(file)
         img_diff = Image.new("RGBA", img_a.size)
-        mismatch = pixelmatch(img_a, img_b, img_diff, threshold=threshold, fail_sat=fail_fast)
+        mismatch = pixelmatch(img_a, img_b, img_diff, threshold=threshold, fail_fast=fail_fast)
         if mismatch == 0:
             return
         else:
