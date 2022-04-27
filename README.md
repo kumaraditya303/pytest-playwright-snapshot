@@ -2,7 +2,7 @@
 
 Based on [pixelmatch-py](https://github.com/whtsky/pixelmatch-py) image comparison library.
 
-Expands `assert_snapshot` pytest fixture from [pytest-playwright-snapshot](https://github.com/kumaraditya303/pytest-playwright-snapshot) library 
+Expands `assert_snapshot` fixture from [pytest-playwright-snapshot](https://github.com/kumaraditya303/pytest-playwright-snapshot) library 
 
 ## Main Features:
 - snapshots creation on the first run

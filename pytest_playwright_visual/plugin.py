@@ -14,7 +14,7 @@ def assert_snapshot(pytestconfig: Any, request: Any, browser_name: str) -> Calla
     test_name = f"{str(Path(request.node.name))}[{str(sys.platform)}]"
     test_dir = str(Path(request.node.name)).split('[', 1)[0]
 
-    def compare(img: bytes, *, threshold: float = 0., name=f'{test_name}.png') -> None:
+    def compare(img: bytes, *, threshold: float = 0., name=f'{test_name}.png', fail_fast=False) -> None:
         update_snapshot = pytestconfig.getoption("--update-snapshots")
         test_file_name = str(os.path.basename(Path(request.node.fspath))).strip('.py')
         filepath = (
@@ -43,7 +43,7 @@ def assert_snapshot(pytestconfig: Any, request: Any, browser_name: str) -> Calla
         img_a = Image.open(BytesIO(img))
         img_b = Image.open(file)
         img_diff = Image.new("RGBA", img_a.size)
-        mismatch = pixelmatch(img_a, img_b, img_diff, threshold=threshold)
+        mismatch = pixelmatch(img_a, img_b, img_diff, threshold=threshold, fail_sat=fail_fast)
         if mismatch == 0:
             return
         else:

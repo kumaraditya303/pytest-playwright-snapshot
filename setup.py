@@ -30,6 +30,6 @@ setup(
         "Framework :: Pytest",
     ],
     python_requires=">=3.8",
-    version='2.0.0',
+    version='2.1',
     setup_requires=["setuptools_scm"],
 )

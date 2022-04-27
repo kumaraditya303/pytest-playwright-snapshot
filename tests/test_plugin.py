@@ -93,7 +93,7 @@ def test_custom_image_name_generated(browser_name: str, testdir: pytest.Testdir)
 
 @pytest.mark.parametrize(
     "browser_name",
-    ["chromium", "firefox", "webkit"],
+    ["chromium"],
 )
 def test_compare_fail(browser_name: str, testdir: pytest.Testdir) -> None:
     testdir.makepyfile(
@@ -112,6 +112,9 @@ def test_compare_fail(browser_name: str, testdir: pytest.Testdir) -> None:
             / "test_snapshot"
             / f"test_snapshot[{browser_name}][{sys.platform}].png"
     ).resolve()
+    result = testdir.runpytest("--browser", browser_name)
+    result.assert_outcomes(failed=1)
+    assert "--> New snapshot(s) created. Please review images" in "".join(result.outlines)
     result = testdir.runpytest("--browser", browser_name, "--update-snapshots")
     result.assert_outcomes(failed=1)
     assert "--> Snapshots updated. Please review images" in "".join(result.outlines)
@@ -120,6 +123,38 @@ def test_compare_fail(browser_name: str, testdir: pytest.Testdir) -> None:
     result = testdir.runpytest("--browser", browser_name)
     result.assert_outcomes(failed=1)
     assert "--> Snapshots DO NOT match!" in "".join(result.outlines)
+
+
+@pytest.mark.parametrize(
+    "browser_name",
+    ["firefox", "webkit"],
+)
+def test_compare_with_fail_fast(browser_name: str, testdir: pytest.Testdir) -> None:
+    testdir.makepyfile(
+        """
+        def test_snapshot(page, assert_snapshot):
+            page.goto("https://via.placeholder.com/250/000000")
+            element = page.query_selector('img')
+            assert_snapshot(element.screenshot(), fail_fast=True)
+    """
+    )
+    # test_name = f"{str(Path(request.node.name))}[{str(sys.platform)}]"
+    filepath = (
+            Path(testdir.tmpdir)
+            / "snapshots"
+            / "test_compare_fail"
+            / "test_snapshot"
+            / f"test_snapshot[{browser_name}][{sys.platform}].png"
+    ).resolve()
+    result = testdir.runpytest("--browser", browser_name, "--update-snapshots")
+    result.assert_outcomes(failed=1)
+    assert "--> Snapshots updated. Please review images" in "".join(result.outlines)
+    img = requests.get("https://via.placeholder.com/250/FFFFFF").content
+    filepath.write_bytes(img)
+    result = testdir.runpytest("--browser", browser_name)
+    result.assert_outcomes(failed=1)
+    assert "--> Snapshots DO NOT match!" in "".join(result.outlines)
+
 
 
 @pytest.mark.parametrize(
