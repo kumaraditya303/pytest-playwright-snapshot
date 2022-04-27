@@ -142,7 +142,7 @@ def test_compare_with_fail_fast(browser_name: str, testdir: pytest.Testdir) -> N
     filepath = (
             Path(testdir.tmpdir)
             / "snapshots"
-            / "test_compare_fail"
+            / "test_compare_with_fail_fast"
             / "test_snapshot"
             / f"test_snapshot[{browser_name}][{sys.platform}].png"
     ).resolve()
