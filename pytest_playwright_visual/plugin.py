@@ -1,6 +1,7 @@
 import sys
 import os
 import shutil
+import math
 from io import BytesIO
 from pathlib import Path
 from typing import Any, Callable
@@ -14,7 +15,8 @@ def assert_snapshot(pytestconfig: Any, request: Any, browser_name: str) -> Calla
     test_name = f"{str(Path(request.node.name))}[{str(sys.platform)}]"
     test_dir = str(Path(request.node.name)).split('[', 1)[0]
 
-    def compare(img: bytes, *, threshold: float = 0.1, name=f'{test_name}.png', fail_fast=False) -> None:
+    def compare(img: bytes, *, diff_pixels: int = 0, diff_ratio: float = 0.0,
+                threshold: float = 0.1, name=f'{test_name}.png', fail_fast=False) -> None:
         update_snapshot = pytestconfig.getoption("--update-snapshots")
         test_file_name = str(os.path.basename(Path(request.node.fspath))).strip('.py')
         filepath = (
@@ -46,12 +48,18 @@ def assert_snapshot(pytestconfig: Any, request: Any, browser_name: str) -> Calla
         mismatch = pixelmatch(img_a, img_b, img_diff, threshold=threshold, fail_fast=fail_fast)
         if mismatch == 0:
             return
+        if mismatch <= diff_pixels:
+            return
+        if (mismatch/math.prod(img_a.size)) <= diff_ratio:
+            return
         else:
             # Create new test_results folder
             test_results_dir.mkdir(parents=True, exist_ok=True)
             img_diff.save(f'{test_results_dir}/Diff_{name}')
             img_a.save(f'{test_results_dir}/Actual_{name}')
             img_b.save(f'{test_results_dir}/Expected_{name}')
+            print(f"threshold is {threshold}")
+            print(f"number of mismatch pixels is {mismatch}")
             pytest.fail("--> Snapshots DO NOT match!")
 
     return compare
